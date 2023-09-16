@@ -9,7 +9,6 @@ import requests
 import sys
 import time
 
-from pprint import pprint
 
 from telegram import Bot
 
@@ -48,10 +47,10 @@ logger = logging.getLogger(__name__)
 
 def check_tokens():
     """Проверка доступности переменных окружения."""
-    for value in TOKENS_LIST:
-        if not value:
-            logger.critical('Отсутствует переменная окружения:', value)
-            sys.exit()
+    tokens = [PRACTICUM_TOKEN, TELEGRAM_TOKEN, TELEGRAM_CHAT_ID]
+    if not all(tokens):
+        logger.critical('Отсутствует переменная окружения:')
+        sys.exit()
 
 
 def send_message(bot, message):
@@ -60,26 +59,24 @@ def send_message(bot, message):
         bot.send_message(TELEGRAM_CHAT_ID, message)
         logger.debug('Сообщение отправлено в телеграм')
     except Exception as error:
-        logger.error(error)
+        logger.error('Ошибка отправки сообщения', error)
 
 
 def get_api_answer(timestamp):
     """Запрос к единственному эндпоинту API-сервиса."""
     try:
         payload = {'from_date': timestamp}
+        logger.info(f'Отправка запроса на {ENDPOINT} с параметрами {payload}')
         homework_statuses = requests.get(
             ENDPOINT, headers=HEADERS, params=payload
         )
-    except requests.exceptions.RequestException:
-        logger.error('Не удалось получить данные')
-    if homework_statuses.status_code != HTTPStatus.OK:
-        raise Not200Error(homework_statuses)
-    elif isinstance is not dict:
-        raise TypeError(logger.error(
-            'Возвращаемый ответ имеет тип данных, отличный от dict'
+        if homework_statuses.status_code != HTTPStatus.OK:
+            raise Not200Error(homework_statuses)
+    except requests.RequestException:
+        logger.error(
+            'Сбой при запросе к эндпоинту '
             )
-        )
-    pprint(homework_statuses.json())
+    return homework_statuses.json()
 
 
 def check_response(response):
@@ -90,7 +87,7 @@ def check_response(response):
             )
         raise TypeError
     else:
-        value_homework = response['homework']
+        value_homework = response.get('homeworks')
     if not isinstance(value_homework, list):
         logger.error(
             'Данные под ключом `homeworks` приходят не в виде списка.'
@@ -109,6 +106,8 @@ def parse_status(homework):
         homework_status = homework.get('status')
         verdict = HOMEWORK_VERDICTS.get(homework_status)
         return f'Изменился статус проверки работы "{homework_name}". {verdict}'
+    elif not homework:
+        raise KeyError('В ответе API домашки нет ключа homework_name')
     else:
         raise KeyError('В ответе API домашки нет ключа homework_name')
 
