@@ -58,6 +58,7 @@ def send_message(bot, message):
     """Отправка сообщения в телеграм чат."""
     try:
         bot.send_message(TELEGRAM_CHAT_ID, message)
+        logger.info('Отправляем сообщение в телеграмм')
     except TelegramError:
         logger.error('Ошибка отправки сообщения', message)
     logger.debug('Сообщение отправлено в телеграм')
@@ -107,8 +108,6 @@ def parse_status(homework):
         homework_status = homework.get('status')
         verdict = HOMEWORK_VERDICTS.get(homework_status)
         return f'Изменился статус проверки работы "{homework_name}". {verdict}'
-    elif not homework:
-        raise KeyError('Ответ API домашки пуст')
     else:
         raise KeyError('В ответе API домашки нет ключа homework_name')
 
@@ -123,13 +122,15 @@ def main():
             response = get_api_answer(timestamp)
             homework = check_response(response)
             message = parse_status(homework[0])
+            if message:
+                send_message(bot, message)
+            time.sleep(RETRY_PERIOD)
         except Exception as error:
             message = f'Сбой в работе программы: {error}'
             logger.error(message)
-        else:
-            if message:
-                send_message(bot, message)
-        time.sleep(RETRY_PERIOD)
+            send_message(bot, message)
+        finally:
+            time.sleep(RETRY_PERIOD)
 
 
 if __name__ == '__main__':
