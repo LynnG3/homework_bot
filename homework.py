@@ -11,6 +11,7 @@ import time
 
 
 from telegram import Bot
+from telegram.error import TelegramError
 
 from dotenv import load_dotenv
 from http import HTTPStatus
@@ -57,9 +58,9 @@ def send_message(bot, message):
     """Отправка сообщения в телеграм чат."""
     try:
         bot.send_message(TELEGRAM_CHAT_ID, message)
-        logger.debug('Сообщение отправлено в телеграм')
-    except Exception as error:
-        logger.error('Ошибка отправки сообщения', error)
+    except TelegramError:
+        logger.error('Ошибка отправки сообщения', message)
+    logger.debug('Сообщение отправлено в телеграм')
 
 
 def get_api_answer(timestamp):
@@ -107,7 +108,7 @@ def parse_status(homework):
         verdict = HOMEWORK_VERDICTS.get(homework_status)
         return f'Изменился статус проверки работы "{homework_name}". {verdict}'
     elif not homework:
-        raise KeyError('В ответе API домашки нет ключа homework_name')
+        raise KeyError('Ответ API домашки пуст')
     else:
         raise KeyError('В ответе API домашки нет ключа homework_name')
 
