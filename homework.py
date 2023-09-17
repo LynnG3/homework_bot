@@ -77,7 +77,7 @@ def get_api_answer(timestamp):
     except requests.RequestException:
         logger.error(
             'Сбой при запросе к эндпоинту '
-            )
+        )
     return homework_statuses.json()
 
 
@@ -86,14 +86,14 @@ def check_response(response):
     if not isinstance(response, dict):
         logger.error(
             'Возвращаемый ответ имеет тип данных, отличный от dict'
-            )
+        )
         raise TypeError
     else:
         value_homework = response.get('homeworks')
     if not isinstance(value_homework, list):
         logger.error(
             'Данные под ключом `homeworks` приходят не в виде списка.'
-            )
+        )
         raise TypeError
     else:
         return value_homework
