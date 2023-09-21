@@ -59,8 +59,9 @@ def send_message(bot, message):
     try:
         bot.send_message(TELEGRAM_CHAT_ID, message)
         logger.info('Отправляем сообщение в телеграмм')
-    except TelegramError:
-        logger.error('Ошибка отправки сообщения', message)
+    except TelegramError as error:
+        raise TelegramError(f'Ошибка отправки телеграм'
+                            f'сообщения:{error}')
     logger.debug('Сообщение отправлено в телеграм')
 
 
@@ -116,19 +117,20 @@ def main():
     """Основная логика работы бота."""
     check_tokens()
     bot = Bot(token=TELEGRAM_TOKEN)
-    timestamp = int(time.time() - RETRY_PERIOD - 50000)
+    timestamp = int(time.time() - RETRY_PERIOD)
     while True:
         try:
             response = get_api_answer(timestamp)
             homework = check_response(response)
             message = parse_status(homework[0])
-            if message:
+            global HOMEWORK_VERDICTS
+            if message != HOMEWORK_VERDICTS:
                 send_message(bot, message)
-            time.sleep(RETRY_PERIOD)
+                HOMEWORK_VERDICTS = message
         except Exception as error:
             message = f'Сбой в работе программы: {error}'
             logger.error(message)
-            send_message(bot, message)
+            # send_message(bot, message)
         finally:
             time.sleep(RETRY_PERIOD)
 
