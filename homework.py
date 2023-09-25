@@ -51,7 +51,8 @@ logger = logging.getLogger(__name__)
 def check_tokens():
     """Проверка доступности переменных окружения."""
     TOKENS_LIST = [PRACTICUM_TOKEN, TELEGRAM_TOKEN, TELEGRAM_CHAT_ID]
-    # без переопределения этого списка тесты не проходят, т.к. в тестах проставляется None
+    # без переопределения этого списка тесты не проходят,
+    # т.к. в тестах проставляется None
     if not all(TOKENS_LIST):
         logger.critical('Отсутствует переменная окружения')
         raise EnvError
