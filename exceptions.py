@@ -1,7 +1,5 @@
 """Кастомные исключения для проекта."""
 
-from telegram.error import TelegramError
-
 
 class Not200Error(Exception):
     """Ошибка ответа API. Код ответа отличен от 200."""
@@ -9,7 +7,7 @@ class Not200Error(Exception):
     pass
 
 
-class SendMessageError(TelegramError):
+class SendMessageError(Exception):
     """Ошибка отправки сообщения."""
 
     pass
